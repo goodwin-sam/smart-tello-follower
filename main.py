@@ -2,26 +2,26 @@ import time
 import cv2
 from djitellopy import Tello
 
-def main():
-    tello = Tello()
-    tello.connect()
-    print("Battery: ", tello.get_battery())
-    tello.streamon()
-    cv2.waitKey(1000)    
-    tello.takeoff()
-    cv2.waitKey(1000)
+from drone_controller import DroneController
+
+def main():  
+    time.sleep(5)
+    drone = DroneController()
+    drone.connect_and_setup()
+    drone.takeoff()
+    whileCount = 0
 
     while True:
-        print("entered while loop")
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            print("Landing...")
+        whileCount += 1
+        if whileCount % 100 == 0:
+            print("whileCount: ")
+        if drone.check_for_quit():
             break
-        img = tello.get_frame_read().frame
+        img = drone.get_frame()
         cv2.imshow("Drone Camera", img)
-        cv2.waitKey(1)
 
     print("exited while loop")
-    tello.land()
+    drone.land()
 
 if __name__ == "__main__":
     main()
