@@ -26,14 +26,18 @@ class DroneController:
         time.sleep(1)
 
     def land(self):
+        """safely land the drone if flying"""
         if self.is_flying:
             print("Landing...")
-            self.tello.land()
-            self.is_flying = False
+            try:
+                self.tello.land()
+            except Exception as e:
+                print(f"Error landing: {e}")
+            finally:
+                self.is_flying = False
             print("is_flying: " + str(self.is_flying))
-
         else:
-            print("Drone is not flying")
+            print("Called land() but Drone is not flying")
 
     def check_for_quit(self):
         if cv2.waitKey(1) & 0xFF == ord('q'):
