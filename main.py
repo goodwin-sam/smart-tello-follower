@@ -24,6 +24,7 @@ def main():
             while_count += 1
             if while_count % 10 == 0:
                 print("while_count: " + str(while_count))
+                drone.tello.send_rc_control(0, 0, 0, 0)
             if drone.check_for_quit():
                 break
             img = drone.get_frame()
