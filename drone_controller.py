@@ -1,11 +1,12 @@
 import time
 import cv2
 from djitellopy import Tello
+from config import WIDTH, HEIGHT
 
 class DroneController:
     def __init__(self):
         self.tello = Tello()
-        self.width, self.height = 480, 320
+        self.width, self.height = WIDTH, HEIGHT
         self.is_flying = False
         print("is_flying: " + str(self.is_flying))
 
@@ -49,3 +50,13 @@ class DroneController:
     def get_frame(self):
         img = self.tello.get_frame_read().frame
         return cv2.resize(img, (self.width, self.height))
+
+    # def find_face_match(self, face_locations, face_matches):
+    #     for i, is_face_match in enumerate(face_matches):
+    #         if is_face_match:
+    #             return face_locations[i]
+    #     return None
+
+    # def calculate_follow_movement(self, face_match):
+    #     print
+                
