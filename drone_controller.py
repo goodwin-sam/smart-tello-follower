@@ -1,7 +1,7 @@
 import time
 import cv2
 from djitellopy import Tello
-from config import HORIZONTAL_DEADZONE, HORIZONTAL_SCALE, MAX_HORIZONTAL_ERROR, MAX_VERTICAL_ERROR, WIDTH, HEIGHT, TARGET_FACE_AREA
+from config import HORIZONTAL_DEADZONE, HORIZONTAL_SCALE, MAX_HORIZONTAL_ERROR, MAX_VERTICAL_ERROR, VERTICAL_DEADZONE, VERTICAL_SCALE, WIDTH, HEIGHT, TARGET_FACE_AREA
 
 class DroneController:
     def __init__(self):
@@ -61,7 +61,7 @@ class DroneController:
     def follow_matched_face(self, matched_face):
         # print("Calculating follow movement...")
         if matched_face is None:
-            # print("No matched face found, hovering...")
+            print("No matched face found, hovering...")
             return
         top, right, bottom, left = matched_face
         width = right - left
@@ -91,7 +91,13 @@ class DroneController:
             yaw = int(horizontal_error * HORIZONTAL_SCALE)
             yaw = max(-100, min(100, yaw))
             print("Yaw: " + str(yaw))
-        if yaw != 0:
-            self.tello.send_rc_control(0, 0, 0, yaw)
+
+        up_down = 0
+        if abs(vertical_error) > VERTICAL_DEADZONE:
+            up_down = int(-vertical_error * VERTICAL_SCALE)
+            up_down = max(-100, min(100, up_down))
+            print("up_down: " + str(up_down))
+
+        self.tello.send_rc_control(0, 0, up_down, yaw)
             
 
