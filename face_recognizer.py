@@ -1,15 +1,17 @@
 import cv2
 import face_recognition
 
+from config import REF_IMG_PATH, TOLERANCE
+
 class FaceRecognizer:
-    def __init__(self, ref_img_path):
-        ref_img = cv2.imread(ref_img_path)
+    def __init__(self):
+        ref_img = cv2.imread(REF_IMG_PATH)
         if ref_img is None:
-            raise FileNotFoundError(f"Reference image not found at {ref_img_path}")
+            raise FileNotFoundError(f"Reference image not found at {REF_IMG_PATH}")
         encodings = face_recognition.face_encodings(ref_img)
         if not encodings:
             raise ValueError("No face encodings found in reference image")
-        self.ref_encoding = face_recognition.face_encodings(ref_img)[0]
+        self.ref_encoding = encodings[0]
         print("reference image loaded and encoded")
         
     def recognize_faces(self, img):
@@ -21,7 +23,10 @@ class FaceRecognizer:
         if not face_encodings:
             return face_locations, []
 
-        face_matches = face_recognition.compare_faces([self.ref_encoding], face_encodings, tolerance=0.6)
+        face_matches = [
+            face_recognition.compare_faces([self.ref_encoding], enc, tolerance=TOLERANCE)[0]
+            for enc in face_encodings
+        ]
         return face_locations, face_matches
 
     def draw_faces(self, img, face_locations, face_matches):
