@@ -12,37 +12,39 @@ from face_recognizer import FaceRecognizer
 
 def main():  
     time.sleep(5)
-    whileCount = 0
+    while_count = 0
     drone = DroneController()
-    face_recognizer = FaceRecognizer("ref_img.jpg")
+    face_recognizer = FaceRecognizer()
 
     try:
         drone.connect_and_setup()
         drone.takeoff()
 
         while True:
-            whileCount += 1
-            if whileCount % 10 == 0:
-                print("whileCount: " + str(whileCount))
+            while_count += 1
+            if while_count % 10 == 0:
+                print("while_count: " + str(while_count))
             if drone.check_for_quit():
                 break
             img = drone.get_frame()
             face_locations, face_matches = face_recognizer.recognize_faces(img)
-            img = face_recognizer.draw_faces(img, face_locations, face_matches)       
+            img = face_recognizer.draw_faces(img, face_locations, face_matches)
 
             cv2.imshow("Drone Camera", img)
 
             time.sleep(0.03)
 
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-
+    
     except KeyboardInterrupt:
         print("Keyboard interrupt detected (ctrl+c). shutting down...")
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
 
     finally:
         print("Cleaning up and landing drone...")
         drone.land()
+        drone.tello.streamoff()
         cv2.destroyAllWindows()
         print("Drone landed and windows closed")
 
