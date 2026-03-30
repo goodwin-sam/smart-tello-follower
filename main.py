@@ -30,9 +30,13 @@ def main():
             face_locations, face_matches = face_recognizer.recognize_faces(img)
             img = face_recognizer.draw_faces(img, face_locations, face_matches)
 
+            matched_face = drone.find_matched_face(face_locations, face_matches)
+            drone.follow_matched_face(matched_face)
+
             cv2.imshow("Drone Camera", img)
 
             time.sleep(0.03)
+            # time.sleep(1)
 
     
     except KeyboardInterrupt:
