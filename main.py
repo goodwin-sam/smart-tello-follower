@@ -24,19 +24,28 @@ def main():
             while_count += 1
             if while_count % 10 == 0:
                 print("while_count: " + str(while_count))
-                drone.tello.send_rc_control(0, 0, 0, 0)
+                # drone.tello.send_rc_control(0, 0, 0, 0)
+
+            # check for quit
             if drone.check_for_quit():
                 break
+
+            # gets frame from drone
             img = drone.get_frame()
+
+            # recognizes faces in frame and draws bounding boxes around them
             face_locations, face_matches = face_recognizer.recognize_faces(img)
             img = face_recognizer.draw_faces(img, face_locations, face_matches)
 
+            # finds first matched face and follows it
             matched_face = drone.find_matched_face(face_locations, face_matches)
             drone.follow_matched_face(matched_face)
 
+            # shows frame in window
             cv2.imshow("Drone Camera", img)
 
             time.sleep(0.03)
+            time.sleep(0.5)
             # time.sleep(1)
 
     

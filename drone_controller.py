@@ -1,7 +1,7 @@
 import time
 import cv2
 from djitellopy import Tello
-from config import HORIZONTAL_DEADZONE, HORIZONTAL_SCALE, MAX_HORIZONTAL_ERROR, MAX_VERTICAL_ERROR, VERTICAL_DEADZONE, VERTICAL_SCALE, WIDTH, HEIGHT, TARGET_FACE_AREA
+from config import AREA_DEADZONE, AREA_SCALE, HORIZONTAL_DEADZONE, HORIZONTAL_SCALE, MAX_AREA_ERROR, MAX_HORIZONTAL_ERROR, MAX_VERTICAL_ERROR, VERTICAL_DEADZONE, VERTICAL_SCALE, WIDTH, HEIGHT, TARGET_FACE_AREA
 
 class DroneController:
     def __init__(self):
@@ -67,24 +67,25 @@ class DroneController:
         width = right - left
         height = bottom - top
         area = width * height
-        print("Width: " + str(width))
-        print("Height: " + str(height))
-        print("Area: " + str(area))
+        # print("Width: " + str(width))
+        # print("Height: " + str(height))
+        # print("Area: " + str(area))
 
         center_x = left + (width // 2)
         center_y = top + (height // 2)
-        print("Center X: " + str(center_x))
-        print("Center Y: " + str(center_y))
+        # print("Center X: " + str(center_x))
+        # print("Center Y: " + str(center_y))
 
         hor_error = (center_x - (self.width // 2))
         vert_error = (center_y - (self.height // 2))
         area_error = (area - (TARGET_FACE_AREA))
-        print("Hor Error: " + str(hor_error))
-        print("Vert Error: " + str(vert_error))
-        print("Area Error: " + str(area_error))
+        # print("Hor Error: " + str(hor_error))
+        # print("Vert Error: " + str(vert_error))
+        # print("Area Error: " + str(area_error))
 
         horizontal_error = max(-MAX_HORIZONTAL_ERROR, min(MAX_HORIZONTAL_ERROR, hor_error))
         vertical_error = max(-MAX_VERTICAL_ERROR, min(MAX_VERTICAL_ERROR, vert_error))
+        area_error = max(-MAX_AREA_ERROR, min(MAX_AREA_ERROR, area_error))
 
         yaw = 0
         if abs(horizontal_error) > HORIZONTAL_DEADZONE:
@@ -98,6 +99,12 @@ class DroneController:
             up_down = max(-100, min(100, up_down))
             print("up_down: " + str(up_down))
 
-        self.tello.send_rc_control(0, 0, up_down, yaw)
+        forward_back = 0
+        if abs(area_error) > AREA_DEADZONE:
+            forward_back = int(-area_error * AREA_SCALE)
+            forward_back = max(-100, min(100, forward_back))
+            print("Forward Back: " + str(forward_back))
+
+        self.tello.send_rc_control(0, forward_back, up_down, yaw)
             
 
