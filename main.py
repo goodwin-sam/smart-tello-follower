@@ -9,16 +9,18 @@ import cv2
 
 from drone_controller import DroneController
 from face_recognizer import FaceRecognizer
+from gesture_recognizer import GestureRecognizer
 
 def main():  
     time.sleep(5)
     while_count = 0
     drone = DroneController()
     face_recognizer = FaceRecognizer()
+    gesture_recognizer = GestureRecognizer()
 
     try:
         drone.connect_and_setup()
-        drone.takeoff()
+        # drone.takeoff()
 
         while True:
             while_count += 1
@@ -32,10 +34,13 @@ def main():
 
             # gets frame from drone
             img = drone.get_frame()
+            img = cv2.flip(img, 1)
 
             # recognizes faces in frame and draws bounding boxes around them
             face_locations, face_matches = face_recognizer.recognize_faces(img)
             img = face_recognizer.draw_faces(img, face_locations, face_matches)
+
+            img = gesture_recognizer.recognize_and_draw_hands(img)
 
             # finds first matched face and follows it
             matched_face = drone.find_matched_face(face_locations, face_matches)
@@ -45,8 +50,6 @@ def main():
             cv2.imshow("Drone Camera", img)
 
             time.sleep(0.03)
-            time.sleep(0.5)
-            # time.sleep(1)
 
     
     except KeyboardInterrupt:
