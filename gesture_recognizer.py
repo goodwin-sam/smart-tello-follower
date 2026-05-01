@@ -50,8 +50,14 @@ class GestureRecognizer:
     def get_gesture(self, finger_count):
         if finger_count == 0:
             return "Fist"
+        elif finger_count == 1:
+            return "One_Finger"
         elif finger_count == 2:
             return "Two_Fingers"
+        elif finger_count == 3:
+            return "Three_Fingers"
+        elif finger_count == 4:
+            return "Four_Fingers"
         elif finger_count == 5:
             return "Open_Palm"
         else:
