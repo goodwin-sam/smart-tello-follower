@@ -1,7 +1,7 @@
 import time
 import cv2
 from djitellopy import Tello
-from config import AREA_DEADZONE, AREA_SCALE, HORIZONTAL_DEADZONE, HORIZONTAL_SCALE, MAX_AREA_ERROR, MAX_HORIZONTAL_ERROR, MAX_VERTICAL_ERROR, VERTICAL_DEADZONE, VERTICAL_SCALE, WIDTH, HEIGHT, TARGET_FACE_AREA
+from config import AREA_DEADZONE, AREA_SCALE, HORIZONTAL_DEADZONE, HORIZONTAL_SCALE, MAX_AREA_ERROR, MAX_HORIZONTAL_ERROR, MAX_VERTICAL_ERROR, VERTICAL_DEADZONE, VERTICAL_OFFSET, VERTICAL_SCALE, WIDTH, HEIGHT, TARGET_FACE_AREA
 
 class DroneController:
     def __init__(self):
@@ -25,6 +25,7 @@ class DroneController:
         self.is_flying = True
         print("is_flying: " + str(self.is_flying))
         time.sleep(1)
+        self.tello.move_up(50)
 
     def land(self):
         """safely land the drone if flying"""
@@ -60,51 +61,105 @@ class DroneController:
 
     def follow_matched_face(self, matched_face):
         # print("Calculating follow movement...")
-        if matched_face is None:
-            print("No matched face found, hovering...")
-            return
-        top, right, bottom, left = matched_face
-        width = right - left
-        height = bottom - top
-        area = width * height
-        # print("Width: " + str(width))
-        # print("Height: " + str(height))
-        # print("Area: " + str(area))
-
-        center_x = left + (width // 2)
-        center_y = top + (height // 2)
-        # print("Center X: " + str(center_x))
-        # print("Center Y: " + str(center_y))
-
-        hor_error = (center_x - (self.width // 2))
-        vert_error = (center_y - (self.height // 2))
-        area_error = (area - (TARGET_FACE_AREA))
-        # print("Hor Error: " + str(hor_error))
-        # print("Vert Error: " + str(vert_error))
-        # print("Area Error: " + str(area_error))
-
-        horizontal_error = max(-MAX_HORIZONTAL_ERROR, min(MAX_HORIZONTAL_ERROR, hor_error))
-        vertical_error = max(-MAX_VERTICAL_ERROR, min(MAX_VERTICAL_ERROR, vert_error))
-        area_error = max(-MAX_AREA_ERROR, min(MAX_AREA_ERROR, area_error))
-
         yaw = 0
-        if abs(horizontal_error) > HORIZONTAL_DEADZONE:
-            yaw = int(horizontal_error * HORIZONTAL_SCALE)
-            yaw = max(-100, min(100, yaw))
-            print("Yaw: " + str(yaw))
-
         up_down = 0
-        if abs(vertical_error) > VERTICAL_DEADZONE:
-            up_down = int(-vertical_error * VERTICAL_SCALE)
-            up_down = max(-100, min(100, up_down))
-            print("up_down: " + str(up_down))
-
         forward_back = 0
-        if abs(area_error) > AREA_DEADZONE:
-            forward_back = int(-area_error * AREA_SCALE)
-            forward_back = max(-100, min(100, forward_back))
-            print("Forward Back: " + str(forward_back))
+        if matched_face:
+            top, right, bottom, left = matched_face
+            width = right - left
+            height = bottom - top
+            area = width * height
+            # print("Width: " + str(width))
+            # print("Height: " + str(height))
+            # print("Area: " + str(area))
 
+            center_x = left + (width // 2)
+            center_y = top + (height // 2)
+            # print("Center X: " + str(center_x))
+            # print("Center Y: " + str(center_y))
+
+            hor_error = (center_x - (self.width // 2))
+            vert_error = (center_y - (self.height // 2) + VERTICAL_OFFSET)
+            area_error = (area - (TARGET_FACE_AREA))
+            # print("Hor Error: " + str(hor_error))
+            # print("Vert Error: " + str(vert_error))
+            # print("Area Error: " + str(area_error))
+
+            horizontal_error = max(-MAX_HORIZONTAL_ERROR, min(MAX_HORIZONTAL_ERROR, hor_error))
+            vertical_error = max(-MAX_VERTICAL_ERROR, min(MAX_VERTICAL_ERROR, vert_error))
+            area_error = max(-MAX_AREA_ERROR, min(MAX_AREA_ERROR, area_error))
+
+            yaw = 0
+            if abs(horizontal_error) > HORIZONTAL_DEADZONE:
+                yaw = int(horizontal_error * HORIZONTAL_SCALE)
+                yaw = max(-100, min(100, yaw))
+                yaw = -yaw
+                print("Yaw: " + str(yaw))
+
+            up_down = 0
+            if abs(vertical_error) > VERTICAL_DEADZONE:
+                up_down = int(-vertical_error * VERTICAL_SCALE)
+                up_down = max(-100, min(100, up_down))
+                print("up_down: " + str(up_down))
+
+            forward_back = 0
+            if abs(area_error) > AREA_DEADZONE:
+                forward_back = int(-area_error * AREA_SCALE)
+                forward_back = max(-100, min(100, forward_back))
+                print("Forward Back: " + str(forward_back))
+
+            if matched_face is None:
+                print("No matched face found, hovering...")
+                self.tello.send_rc_control(0, 0, 0, 0)
+                return
+        else:
+            print("No matched face found ... hovering")
+            
         self.tello.send_rc_control(0, forward_back, up_down, yaw)
+
+        # top, right, bottom, left = matched_face
+        # width = right - left
+        # height = bottom - top
+        # area = width * height
+        # # print("Width: " + str(width))
+        # # print("Height: " + str(height))
+        # # print("Area: " + str(area))
+
+        # center_x = left + (width // 2)
+        # center_y = top + (height // 2)
+        # # print("Center X: " + str(center_x))
+        # # print("Center Y: " + str(center_y))
+
+        # hor_error = (center_x - (self.width // 2))
+        # vert_error = (center_y - (self.height // 2) + VERTICAL_OFFSET)
+        # area_error = (area - (TARGET_FACE_AREA))
+        # # print("Hor Error: " + str(hor_error))
+        # # print("Vert Error: " + str(vert_error))
+        # # print("Area Error: " + str(area_error))
+
+        # horizontal_error = max(-MAX_HORIZONTAL_ERROR, min(MAX_HORIZONTAL_ERROR, hor_error))
+        # vertical_error = max(-MAX_VERTICAL_ERROR, min(MAX_VERTICAL_ERROR, vert_error))
+        # area_error = max(-MAX_AREA_ERROR, min(MAX_AREA_ERROR, area_error))
+
+        # yaw = 0
+        # if abs(horizontal_error) > HORIZONTAL_DEADZONE:
+        #     yaw = int(horizontal_error * HORIZONTAL_SCALE)
+        #     yaw = max(-100, min(100, yaw))
+        #     yaw = -yaw
+        #     print("Yaw: " + str(yaw))
+
+        # up_down = 0
+        # if abs(vertical_error) > VERTICAL_DEADZONE:
+        #     up_down = int(-vertical_error * VERTICAL_SCALE)
+        #     up_down = max(-100, min(100, up_down))
+        #     print("up_down: " + str(up_down))
+
+        # forward_back = 0
+        # if abs(area_error) > AREA_DEADZONE:
+        #     forward_back = int(-area_error * AREA_SCALE)
+        #     forward_back = max(-100, min(100, forward_back))
+        #     print("Forward Back: " + str(forward_back))
+
+        # self.tello.send_rc_control(0, forward_back, up_down, yaw)
             
 

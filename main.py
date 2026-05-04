@@ -20,7 +20,7 @@ def main():
 
     try:
         drone.connect_and_setup()
-        # drone.takeoff()
+        drone.takeoff()
 
         while True:
             while_count += 1
