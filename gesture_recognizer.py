@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+from collections import deque
 
 from config import WIDTH, HEIGHT
 
@@ -8,6 +9,10 @@ class GestureRecognizer:
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.4, min_tracking_confidence=0.3)
         self.mp_draw = mp.solutions.drawing_utils
+        self.GESTURE_CONFIRMATION_FRAMES = 15
+        self.GESTURE_HISTORY = deque(maxlen=self.GESTURE_CONFIRMATION_FRAMES)
+        self.GESTURE_COOLDOWN = 30
+        self.cooldown_counter = 0
         print("Gesture recognizer initialized")
         
 
@@ -20,13 +25,31 @@ class GestureRecognizer:
                 self.mp_draw.draw_landmarks(img, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
 
                 finger_count = self.count_fingers(hand_landmarks)
+
                 gesture = self.get_gesture(finger_count)
+                self.GESTURE_HISTORY.append(gesture)
+                confirmed_gesture = self.check_confirmed_gesture()
+
                 if gesture:
                     print(f"Gesture: {gesture}")
                     wrist = hand_landmarks.landmark[0]
                     label_x = int(wrist.x*img.shape[1])
                     label_y = int(wrist.y*img.shape[0])+20
-                    cv2.putText(img, gesture, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+
+                    if confirmed_gesture and self.cooldown_counter == 0:
+                        print(f"Confirmed Gesture: {confirmed_gesture}")
+                        self.cooldown_counter = self.GESTURE_COOLDOWN
+                        cv2.putText(img, f"confirmed: {confirmed_gesture}", (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 3)
+                    elif confirmed_gesture and self.cooldown_counter > 0:
+                        cv2.putText(img, f"confirmed: {confirmed_gesture}", (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 3)
+                    elif gesture and self.cooldown_counter == 0:
+                        cv2.putText(img, f"gesture: {gesture}", (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 1)
+
+        else:
+            self.GESTURE_HISTORY.clear()
+        
+        if self.cooldown_counter > 0:
+            self.cooldown_counter -= 1
 
         return img
 
@@ -45,6 +68,16 @@ class GestureRecognizer:
                 extended_fingers += 1
 
         return extended_fingers
+
+
+    def check_confirmed_gesture(self):
+        if len(self.GESTURE_HISTORY) < self.GESTURE_CONFIRMATION_FRAMES:
+            return None
+        
+        first_gesture = self.GESTURE_HISTORY[0]
+        if all(gesture == first_gesture for gesture in self.GESTURE_HISTORY):
+            return first_gesture
+        return None
 
 
     def get_gesture(self, finger_count):
