@@ -12,7 +12,6 @@ from face_recognizer import FaceRecognizer
 from gesture_recognizer import GestureRecognizer
 
 def main():  
-    time.sleep(5)
     while_count = 0
     drone = DroneController()
     face_recognizer = FaceRecognizer()
