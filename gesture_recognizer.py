@@ -21,10 +21,12 @@ class GestureRecognizer:
         hand_results = self.hands.process(img_rgb)
 
         if hand_results.multi_hand_landmarks:
-            for hand_landmarks in hand_results.multi_hand_landmarks:
+            for i, hand_landmarks in enumerate(hand_results.multi_hand_landmarks):
                 self.mp_draw.draw_landmarks(img, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
 
-                finger_count = self.count_fingers(hand_landmarks)
+                handedness = hand_results.multi_handedness[i].classification[0].label
+
+                finger_count = self.count_fingers(hand_landmarks, handedness)
 
                 gesture = self.get_gesture(finger_count)
                 self.GESTURE_HISTORY.append(gesture)
@@ -54,13 +56,19 @@ class GestureRecognizer:
         return img
 
     
-    def count_fingers(self, hand_landmarks):
+    def count_fingers(self, hand_landmarks, handedness):
         landmarks = hand_landmarks.landmark
         extended_fingers = 0
 
+        if handedness == "Left":
+            if landmarks[4].x > landmarks[3].x:
+                 extended_fingers += 1
+        elif handedness == "Right":
+            if landmarks[4].x < landmarks[3].x:
+                extended_fingers += 1
         # thumb
-        if landmarks[4].x > landmarks[3].x:
-            extended_fingers += 1
+        # if landmarks[4].x > landmarks[3].x:
+        #     extended_fingers += 1
 
         # four fingers
         for tip, mid in [(8, 6), (12, 10), (16, 14), (20, 18)]:
