@@ -18,7 +18,7 @@ def main():
     gesture_recognizer = GestureRecognizer()
 
     try:
-        drone.connect_and_setup()
+        drone.setup()
         # drone.takeoff()
 
         while True:
@@ -39,7 +39,7 @@ def main():
             face_locations, face_matches = face_recognizer.recognize_faces(img)
             img = face_recognizer.draw_faces(img, face_locations, face_matches)
 
-            img, confirmed_gesture = gesture_recognizer.recognize_and_draw_hands(img)
+            img, confirmed_gesture = gesture_recognizer.process_hands(img)
 
             if confirmed_gesture:
                 if confirmed_gesture == "Open_Palm":

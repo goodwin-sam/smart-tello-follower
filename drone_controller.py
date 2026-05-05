@@ -12,7 +12,7 @@ class DroneController:
         print("is_flying: " + str(self.is_flying))
         print("is_paused: " + str(self.is_paused))
 
-    def connect_and_setup(self):
+    def setup(self):
         print("Connecting to drone...")
         self.tello.connect()
         print(f"Battery: {self.tello.get_battery()}%")
