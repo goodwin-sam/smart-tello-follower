@@ -19,7 +19,7 @@ def main():
 
     try:
         drone.connect_and_setup()
-        drone.takeoff()
+        # drone.takeoff()
 
         while True:
             while_count += 1
@@ -39,11 +39,31 @@ def main():
             face_locations, face_matches = face_recognizer.recognize_faces(img)
             img = face_recognizer.draw_faces(img, face_locations, face_matches)
 
-            img = gesture_recognizer.recognize_and_draw_hands(img)
+            img, confirmed_gesture = gesture_recognizer.recognize_and_draw_hands(img)
 
-            # finds first matched face and follows it
-            matched_face = drone.find_matched_face(face_locations, face_matches)
-            drone.follow_matched_face(matched_face)
+            if confirmed_gesture:
+                if confirmed_gesture == "Open_Palm":
+                    print("Landing from open palm")
+                    drone.land()
+                elif confirmed_gesture == "Fist" and not drone.is_paused:
+                    print("Pausing from fist")
+                    drone.is_paused = True
+                elif confirmed_gesture == "One_Finger" and not drone.is_paused:
+                    print("response from one finger")
+                elif confirmed_gesture == "Two_Fingers" and not drone.is_paused:
+                    print("response from two fingers")
+                elif confirmed_gesture == "Three_Fingers" and not drone.is_paused:
+                    print("response from three fingers")
+                elif confirmed_gesture == "Four_Fingers" and not drone.is_paused:
+                    print("response from four fingers")
+
+            if drone.is_paused:
+                print("Drone is paused")
+                drone.tello.send_rc_control(0, 0, 0, 0)
+            else:
+                # finds first matched face and follows it
+                matched_face = drone.find_matched_face(face_locations, face_matches)
+                drone.follow_matched_face(matched_face)
 
             # shows frame in window
             cv2.imshow("Drone Camera", img)

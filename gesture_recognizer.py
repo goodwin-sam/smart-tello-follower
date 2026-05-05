@@ -25,9 +25,7 @@ class GestureRecognizer:
                 self.mp_draw.draw_landmarks(img, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
 
                 handedness = hand_results.multi_handedness[i].classification[0].label
-
                 finger_count = self.count_fingers(hand_landmarks, handedness)
-
                 gesture = self.get_gesture(finger_count)
                 self.GESTURE_HISTORY.append(gesture)
                 confirmed_gesture = self.check_confirmed_gesture()
@@ -53,7 +51,7 @@ class GestureRecognizer:
         if self.cooldown_counter > 0:
             self.cooldown_counter -= 1
 
-        return img
+        return img, confirmed_gesture
 
     
     def count_fingers(self, hand_landmarks, handedness):

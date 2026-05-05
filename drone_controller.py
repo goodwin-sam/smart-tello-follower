@@ -8,7 +8,9 @@ class DroneController:
         self.tello = Tello()
         self.width, self.height = WIDTH, HEIGHT
         self.is_flying = False
+        self.is_paused = False
         print("is_flying: " + str(self.is_flying))
+        print("is_paused: " + str(self.is_paused))
 
     def connect_and_setup(self):
         print("Connecting to drone...")
