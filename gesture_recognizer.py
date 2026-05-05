@@ -16,19 +16,20 @@ class GestureRecognizer:
         print("Gesture recognizer initialized")
         
 
-    def recognize_and_draw_hands(self, img):
+    def process_hands(self, img):
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         hand_results = self.hands.process(img_rgb)
+        confirmed_gesture = None
 
         if hand_results.multi_hand_landmarks:
             for i, hand_landmarks in enumerate(hand_results.multi_hand_landmarks):
                 self.mp_draw.draw_landmarks(img, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
 
                 handedness = hand_results.multi_handedness[i].classification[0].label
-                finger_count = self.count_fingers(hand_landmarks, handedness)
-                gesture = self.get_gesture(finger_count)
+                finger_count = self.get_finger_count(hand_landmarks, handedness)
+                gesture = self.get_gesture(finger_count, hand_landmarks)
                 self.GESTURE_HISTORY.append(gesture)
-                confirmed_gesture = self.check_confirmed_gesture()
+                confirmed_gesture = self.get_confirmed_gesture()
 
                 if gesture:
                     print(f"Gesture: {gesture}")
@@ -54,7 +55,7 @@ class GestureRecognizer:
         return img, confirmed_gesture
 
     
-    def count_fingers(self, hand_landmarks, handedness):
+    def get_finger_count(self, hand_landmarks, handedness):
         landmarks = hand_landmarks.landmark
         extended_fingers = 0
 
@@ -64,9 +65,6 @@ class GestureRecognizer:
         elif handedness == "Right":
             if landmarks[4].x < landmarks[3].x:
                 extended_fingers += 1
-        # thumb
-        # if landmarks[4].x > landmarks[3].x:
-        #     extended_fingers += 1
 
         # four fingers
         for tip, mid in [(8, 6), (12, 10), (16, 14), (20, 18)]:
@@ -74,9 +72,21 @@ class GestureRecognizer:
                 extended_fingers += 1
 
         return extended_fingers
+        
+
+    def is_ok_sign(self, landmarks):
+        thumb_tip = landmarks[4]
+        index_tip = landmarks[8]
+
+        pinch_distance = ((thumb_tip.x - index_tip.x)**2 + (thumb_tip.y - index_tip.y)**2)**0.5
+        pinching = pinch_distance < 0.07
+
+        other_fingers_extended = all(landmarks[tip].y < landmarks[mid].y for tip, mid in [(12, 10), (16, 14), (20, 18)])
+
+        return pinching and other_fingers_extended
 
 
-    def check_confirmed_gesture(self):
+    def get_confirmed_gesture(self):
         if len(self.GESTURE_HISTORY) < self.GESTURE_CONFIRMATION_FRAMES:
             return None
         
@@ -86,8 +96,10 @@ class GestureRecognizer:
         return None
 
 
-    def get_gesture(self, finger_count):
-        if finger_count == 0:
+    def get_gesture(self, finger_count, hand_landmarks):
+        if self.is_ok_sign(hand_landmarks.landmark):
+            return "OK"
+        elif finger_count == 0:
             return "Fist"
         elif finger_count == 1:
             return "One_Finger"
