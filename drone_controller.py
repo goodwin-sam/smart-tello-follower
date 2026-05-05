@@ -25,7 +25,6 @@ class DroneController:
         print("Taking off...")
         self.tello.takeoff()
         self.is_flying = True
-        print("is_flying: " + str(self.is_flying))
         time.sleep(1)
         self.tello.move_up(50)
 
@@ -39,7 +38,6 @@ class DroneController:
                 print(f"Error landing: {e}")
             finally:
                 self.is_flying = False
-            print("is_flying: " + str(self.is_flying))
         else:
             print("Called land() but Drone is not flying")
 
@@ -96,22 +94,21 @@ class DroneController:
                 yaw = int(horizontal_error * HORIZONTAL_SCALE)
                 yaw = max(-100, min(100, yaw))
                 yaw = -yaw
-                print("Yaw: " + str(yaw))
+                # print("Yaw: " + str(yaw))
 
             up_down = 0
             if abs(vertical_error) > VERTICAL_DEADZONE:
                 up_down = int(-vertical_error * VERTICAL_SCALE)
                 up_down = max(-100, min(100, up_down))
-                print("up_down: " + str(up_down))
+                # print("up_down: " + str(up_down))
 
             forward_back = 0
             if abs(area_error) > AREA_DEADZONE:
                 forward_back = int(-area_error * AREA_SCALE)
                 forward_back = max(-100, min(100, forward_back))
-                print("Forward Back: " + str(forward_back))
+                # print("Forward Back: " + str(forward_back))
 
             if matched_face is None:
-                print("No matched face found, hovering...")
                 self.tello.send_rc_control(0, 0, 0, 0)
                 return
         else:

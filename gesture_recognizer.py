@@ -9,11 +9,10 @@ class GestureRecognizer:
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.4, min_tracking_confidence=0.3)
         self.mp_draw = mp.solutions.drawing_utils
-        self.GESTURE_CONFIRMATION_FRAMES = 15
+        self.GESTURE_CONFIRMATION_FRAMES = 20
         self.GESTURE_HISTORY = deque(maxlen=self.GESTURE_CONFIRMATION_FRAMES)
         self.GESTURE_COOLDOWN = 30
         self.cooldown_counter = 0
-        print("Gesture recognizer initialized")
         
 
     def process_hands(self, img):
@@ -32,7 +31,6 @@ class GestureRecognizer:
                 confirmed_gesture = self.get_confirmed_gesture()
 
                 if gesture:
-                    print(f"Gesture: {gesture}")
                     wrist = hand_landmarks.landmark[0]
                     label_x = int(wrist.x*img.shape[1])
                     label_y = int(wrist.y*img.shape[0])+20

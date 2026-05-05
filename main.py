@@ -12,7 +12,6 @@ from face_recognizer import FaceRecognizer
 from gesture_recognizer import GestureRecognizer
 
 def main():  
-    while_count = 0
     drone = DroneController()
     face_recognizer = FaceRecognizer()
     gesture_recognizer = GestureRecognizer()
@@ -22,11 +21,6 @@ def main():
         # drone.takeoff()
 
         while True:
-            while_count += 1
-            if while_count % 10 == 0:
-                print("while_count: " + str(while_count))
-                # drone.tello.send_rc_control(0, 0, 0, 0)
-
             # check for quit
             if drone.check_for_quit():
                 break
@@ -48,6 +42,9 @@ def main():
                 elif confirmed_gesture == "Fist" and not drone.is_paused:
                     print("Pausing from fist")
                     drone.is_paused = True
+                elif confirmed_gesture == "OK" and drone.is_paused:
+                    print("resuming from OK")
+                    drone.is_paused = False
                 elif confirmed_gesture == "One_Finger" and not drone.is_paused:
                     print("response from one finger")
                 elif confirmed_gesture == "Two_Fingers" and not drone.is_paused:
