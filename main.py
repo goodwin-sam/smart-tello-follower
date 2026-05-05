@@ -43,12 +43,14 @@ def main():
                     print("Pausing from fist")
                     drone.is_paused = True
                 elif confirmed_gesture == "OK" and drone.is_paused:
-                    print("resuming from OK")
+                    print("Resuming from OK")
                     drone.is_paused = False
                 elif confirmed_gesture == "One_Finger" and not drone.is_paused:
-                    print("response from one finger")
+                    print("Spin from one finger")
+                    drone.spin()
                 elif confirmed_gesture == "Two_Fingers" and not drone.is_paused:
-                    print("response from two fingers")
+                    print("Flip forward from two fingers")
+                    drone.flip_forward()
                 elif confirmed_gesture == "Three_Fingers" and not drone.is_paused:
                     print("response from three fingers")
                 elif confirmed_gesture == "Four_Fingers" and not drone.is_paused:

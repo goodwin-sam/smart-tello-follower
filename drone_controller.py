@@ -116,49 +116,15 @@ class DroneController:
             
         self.tello.send_rc_control(0, forward_back, up_down, yaw)
 
-        # top, right, bottom, left = matched_face
-        # width = right - left
-        # height = bottom - top
-        # area = width * height
-        # # print("Width: " + str(width))
-        # # print("Height: " + str(height))
-        # # print("Area: " + str(area))
 
-        # center_x = left + (width // 2)
-        # center_y = top + (height // 2)
-        # # print("Center X: " + str(center_x))
-        # # print("Center Y: " + str(center_y))
+    def spin(self):
+        """360 clockwise spin gesture movement"""
+        print("Spinning 360 gesture movement")
+        self.tello.rotate_clockwise(360)
 
-        # hor_error = (center_x - (self.width // 2))
-        # vert_error = (center_y - (self.height // 2) + VERTICAL_OFFSET)
-        # area_error = (area - (TARGET_FACE_AREA))
-        # # print("Hor Error: " + str(hor_error))
-        # # print("Vert Error: " + str(vert_error))
-        # # print("Area Error: " + str(area_error))
 
-        # horizontal_error = max(-MAX_HORIZONTAL_ERROR, min(MAX_HORIZONTAL_ERROR, hor_error))
-        # vertical_error = max(-MAX_VERTICAL_ERROR, min(MAX_VERTICAL_ERROR, vert_error))
-        # area_error = max(-MAX_AREA_ERROR, min(MAX_AREA_ERROR, area_error))
-
-        # yaw = 0
-        # if abs(horizontal_error) > HORIZONTAL_DEADZONE:
-        #     yaw = int(horizontal_error * HORIZONTAL_SCALE)
-        #     yaw = max(-100, min(100, yaw))
-        #     yaw = -yaw
-        #     print("Yaw: " + str(yaw))
-
-        # up_down = 0
-        # if abs(vertical_error) > VERTICAL_DEADZONE:
-        #     up_down = int(-vertical_error * VERTICAL_SCALE)
-        #     up_down = max(-100, min(100, up_down))
-        #     print("up_down: " + str(up_down))
-
-        # forward_back = 0
-        # if abs(area_error) > AREA_DEADZONE:
-        #     forward_back = int(-area_error * AREA_SCALE)
-        #     forward_back = max(-100, min(100, forward_back))
-        #     print("Forward Back: " + str(forward_back))
-
-        # self.tello.send_rc_control(0, forward_back, up_down, yaw)
-            
+    def flip_forward(self):
+        """flip forward gesture movement"""
+        print("Flipping forward gesture movement")
+        self.tello.flip_forward
 
