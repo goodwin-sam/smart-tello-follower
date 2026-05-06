@@ -42,6 +42,8 @@ def main():
                 elif confirmed_gesture == "Fist" and not drone.is_paused:
                     print("Pausing from fist")
                     drone.is_paused = True
+                    drone.no_face_frames = 0
+                    drone.is_searching = False
                 elif confirmed_gesture == "OK" and drone.is_paused:
                     print("Resuming from OK")
                     drone.is_paused = False

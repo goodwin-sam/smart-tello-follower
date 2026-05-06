@@ -1,7 +1,7 @@
 import time
 import cv2
 from djitellopy import Tello
-from config import AREA_DEADZONE, AREA_SCALE, HORIZONTAL_DEADZONE, HORIZONTAL_SCALE, MAX_AREA_ERROR, MAX_HORIZONTAL_ERROR, MAX_VERTICAL_ERROR, VERTICAL_DEADZONE, VERTICAL_OFFSET, VERTICAL_SCALE, WIDTH, HEIGHT, TARGET_FACE_AREA
+from config import AREA_DEADZONE, AREA_SCALE, HORIZONTAL_DEADZONE, HORIZONTAL_SCALE, MAX_AREA_ERROR, MAX_HORIZONTAL_ERROR, MAX_VERTICAL_ERROR, NO_FACE_SEARCH_THRESHOLD, SEARCH_YAW_SPEED, VERTICAL_DEADZONE, VERTICAL_OFFSET, VERTICAL_SCALE, WIDTH, HEIGHT, TARGET_FACE_AREA
 
 class DroneController:
     def __init__(self):
@@ -9,8 +9,11 @@ class DroneController:
         self.width, self.height = WIDTH, HEIGHT
         self.is_flying = False
         self.is_paused = False
+        self.no_face_frames = 0
+        self.is_searching = False
         print("is_flying: " + str(self.is_flying))
         print("is_paused: " + str(self.is_paused))
+        print("is_searching: " + str(self.is_searching))
 
     def setup(self):
         print("Connecting to drone...")
@@ -65,6 +68,11 @@ class DroneController:
         up_down = 0
         forward_back = 0
         if matched_face:
+            self.no_face_frames = 0
+            if self.is_searching:
+                print("Matched face found during search, stopping search")
+                self.is_searching = False
+
             top, right, bottom, left = matched_face
             width = right - left
             height = bottom - top
@@ -89,30 +97,32 @@ class DroneController:
             vertical_error = max(-MAX_VERTICAL_ERROR, min(MAX_VERTICAL_ERROR, vert_error))
             area_error = max(-MAX_AREA_ERROR, min(MAX_AREA_ERROR, area_error))
 
-            yaw = 0
             if abs(horizontal_error) > HORIZONTAL_DEADZONE:
                 yaw = int(horizontal_error * HORIZONTAL_SCALE)
                 yaw = max(-100, min(100, yaw))
                 yaw = -yaw
                 # print("Yaw: " + str(yaw))
 
-            up_down = 0
             if abs(vertical_error) > VERTICAL_DEADZONE:
                 up_down = int(-vertical_error * VERTICAL_SCALE)
                 up_down = max(-100, min(100, up_down))
                 # print("up_down: " + str(up_down))
 
-            forward_back = 0
             if abs(area_error) > AREA_DEADZONE:
                 forward_back = int(-area_error * AREA_SCALE)
                 forward_back = max(-100, min(100, forward_back))
                 # print("Forward Back: " + str(forward_back))
 
-            if matched_face is None:
-                self.tello.send_rc_control(0, 0, 0, 0)
-                return
         else:
-            print("No matched face found ... hovering")
+            self.no_face_frames += 1
+            if self.no_face_frames > NO_FACE_SEARCH_THRESHOLD:
+                if not self.is_searching:
+                    print("No face found for a while, starting search...")
+                    self.is_searching = True
+                self.tello.send_rc_control(0, 0, 0, SEARCH_YAW_SPEED)
+                return
+            else:
+                print(f"No face found, frame count: {self.no_face_frames}")
             
         self.tello.send_rc_control(0, forward_back, up_down, yaw)
 
@@ -126,5 +136,5 @@ class DroneController:
     def flip_forward(self):
         """flip forward gesture movement"""
         print("Flipping forward gesture movement")
-        self.tello.flip_forward
+        self.tello.flip_forward()
 
