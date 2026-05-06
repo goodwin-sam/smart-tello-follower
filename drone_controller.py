@@ -127,6 +127,33 @@ class DroneController:
         self.tello.send_rc_control(0, forward_back, up_down, yaw)
 
 
+    def execute_gesture(self, gesture):
+        if gesture:
+            if gesture == "Open_Palm":
+                print("Landing from open palm")
+                self.tello.land()
+            elif gesture == "Fist" and not self.tello.is_paused:
+                print("Pausing from fist")
+                self.tello.is_paused = True
+                self.tello.no_face_frames = 0
+                self.tello.is_searching = False
+            elif gesture == "OK" and self.tello.is_paused:
+                print("Resuming from OK")
+                self.tello.is_paused = False
+            elif gesture == "One_Finger" and not self.tello.is_paused:
+                print("Spin from one finger")
+                self.tello.spin()
+            elif gesture == "Two_Fingers" and not self.tello.is_paused:
+                print("Flip forward from two fingers")
+                self.tello.flip_forward()
+            elif gesture == "Three_Fingers" and not self.tello.is_paused:
+                print("dance from three fingers")
+                self.tello.dance()
+            elif gesture == "Four_Fingers" and not self.tello.is_paused:
+                print("corkscrew from four fingers")
+                self.tello.corkscrew()
+
+
     def spin(self):
         """360 clockwise spin gesture movement"""
         print("Spinning 360 gesture movement")

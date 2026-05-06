@@ -18,7 +18,7 @@ def main():
 
     try:
         drone.setup()
-        # drone.takeoff()
+        drone.takeoff()
 
         while True:
             # check for quit
@@ -34,31 +34,8 @@ def main():
             img = face_recognizer.draw_faces(img, face_locations, face_matches)
 
             img, confirmed_gesture = gesture_recognizer.process_hands(img)
-
             if confirmed_gesture:
-                if confirmed_gesture == "Open_Palm":
-                    print("Landing from open palm")
-                    drone.land()
-                elif confirmed_gesture == "Fist" and not drone.is_paused:
-                    print("Pausing from fist")
-                    drone.is_paused = True
-                    drone.no_face_frames = 0
-                    drone.is_searching = False
-                elif confirmed_gesture == "OK" and drone.is_paused:
-                    print("Resuming from OK")
-                    drone.is_paused = False
-                elif confirmed_gesture == "One_Finger" and not drone.is_paused:
-                    print("Spin from one finger")
-                    drone.spin()
-                elif confirmed_gesture == "Two_Fingers" and not drone.is_paused:
-                    print("Flip forward from two fingers")
-                    drone.flip_forward()
-                elif confirmed_gesture == "Three_Fingers" and not drone.is_paused:
-                    print("dance from three fingers")
-                    drone.dance()
-                elif confirmed_gesture == "Four_Fingers" and not drone.is_paused:
-                    print("corkscrew from four fingers")
-                    drone.corkscrew()
+                drone.execute_gesture(confirmed_gesture)
 
             if drone.is_paused:
                 print("Drone is paused")
