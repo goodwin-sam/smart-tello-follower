@@ -54,9 +54,11 @@ def main():
                     print("Flip forward from two fingers")
                     drone.flip_forward()
                 elif confirmed_gesture == "Three_Fingers" and not drone.is_paused:
-                    print("response from three fingers")
+                    print("dance from three fingers")
+                    drone.dance()
                 elif confirmed_gesture == "Four_Fingers" and not drone.is_paused:
-                    print("response from four fingers")
+                    print("corkscrew from four fingers")
+                    drone.corkscrew()
 
             if drone.is_paused:
                 print("Drone is paused")

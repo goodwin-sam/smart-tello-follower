@@ -138,3 +138,40 @@ class DroneController:
         print("Flipping forward gesture movement")
         self.tello.flip_forward()
 
+
+    def dance(self):
+        """Dance gesture movement"""
+        print("Dancing gesture movement")
+        self.tello.move_right(50)
+        self.tello.move_left(50)
+        self.tello.move_up(25)
+        self.tello.move_down(25)
+        self.tello.move_right(25)
+        self.tello.move_left(25)
+        self.tello.rotate_clockwise(360)
+        self.tello.rotate_clockwise(25)
+        self.tello.rotate_counter_clockwise(25)
+        self.tello.move_up(25)
+        self.tello.move_down(25)
+
+
+    def corkscrew(self):
+        """Corkscrew flip gesture movement"""
+        print("Corkscrew flip gesture movement")
+        frames_per_phase = 40
+        yaw_speed = 50
+        vert_speed = 30
+
+        for _ in range(frames_per_phase):
+            self.tello.send_rc_control(0, 0, vert_speed, yaw_speed)
+            time.sleep(0.05)
+        for _ in range(frames_per_phase):
+            self.tello.send_rc_control(0, 0, -vert_speed, yaw_speed)
+            time.sleep(0.05)
+        self.tello.send_rc_control(0, 0, 0, 0)
+        time.sleep(0.5)
+
+        total_yaw_time = frames_per_phase * 2 * 0.05
+        correction_degrees = int(total_yaw_time * yaw_speed * 1.8)
+        self.tello.rotate_counter_clockwise(correction_degrees % 360 or 360)
+        
