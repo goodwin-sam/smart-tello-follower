@@ -131,27 +131,27 @@ class DroneController:
         if gesture:
             if gesture == "Open_Palm":
                 print("Landing from open palm")
-                self.tello.land()
-            elif gesture == "Fist" and not self.tello.is_paused:
+                self.land()
+            elif gesture == "Fist" and not self.is_paused:
                 print("Pausing from fist")
-                self.tello.is_paused = True
-                self.tello.no_face_frames = 0
-                self.tello.is_searching = False
-            elif gesture == "OK" and self.tello.is_paused:
+                self.is_paused = True
+                self.no_face_frames = 0
+                self.is_searching = False
+            elif gesture == "OK" and self.is_paused:
                 print("Resuming from OK")
-                self.tello.is_paused = False
-            elif gesture == "One_Finger" and not self.tello.is_paused:
+                self.is_paused = False
+            elif gesture == "One_Finger" and not self.is_paused:
                 print("Spin from one finger")
-                self.tello.spin()
-            elif gesture == "Two_Fingers" and not self.tello.is_paused:
+                self.spin()
+            elif gesture == "Two_Fingers" and not self.is_paused:
                 print("Flip forward from two fingers")
-                self.tello.flip_forward()
-            elif gesture == "Three_Fingers" and not self.tello.is_paused:
+                self.flip_forward()
+            elif gesture == "Three_Fingers" and not self.is_paused:
                 print("dance from three fingers")
-                self.tello.dance()
-            elif gesture == "Four_Fingers" and not self.tello.is_paused:
+                self.dance()
+            elif gesture == "Four_Fingers" and not self.is_paused:
                 print("corkscrew from four fingers")
-                self.tello.corkscrew()
+                self.corkscrew()
 
 
     def spin(self):
