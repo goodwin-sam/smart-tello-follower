@@ -59,20 +59,42 @@ smart-tello-follower/
 ### Hardware
 - DJI Tello drone
 - Computer with Wi-Fi (connect to the Tello's Wi-Fi network before running)
+- Uses Python Version 3.11
 
-### System Dependencies (Manjaro/Arch Linux)
+### System Dependencies
 
-```bash
-sudo pacman -S --needed python311 python311-pip base-devel cmake openblas lapack
-```
-
-For Ubuntu/Debian:
+**Ubuntu / Debian:**
 
 ```bash
-sudo apt install python3.11 python3.11-venv python3.11-dev build-essential cmake libopenblas-dev liblapack-dev
-```
+sudo apt update
+sudo apt install software-properties-common -y
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt upgrade
 
-> `dlib` (required by `face_recognition`) compiles from source and needs CMake and BLAS/LAPACK headers.
+# install required packages
+sudo apt install -y \
+    python3.11 \
+    python3.11-venv \
+    python3.11-dev \
+    build-essential \
+    cmake \
+    libopenblas-dev \
+    liblapack-dev \
+    libx11-dev \
+    libgtk-3-dev \
+    libboost-all-dev \
+    ffmpeg \
+    libopencv-dev
+```
+**Manjaro/Arch Linux:**
+```bash
+sudo pacman -Syu
+# Install required packages
+sudo pacman -S --needed base-devel cmake openblas lapack
+# Install python 3.11
+yay -S python311
+```
 
 ---
 
@@ -94,12 +116,39 @@ source venv/bin/activate
 
 **3. Install dependencies**
 
+Please be patient, may take time to build wheel for dlib
 ```bash
 pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 ```
 
-**4. Verify the install**
+**4. Fix face_recognition_models and the broken __init__.py**
+
+The published package uses a deprecated pkg_resources import
+```bash
+# Fix face_recognition_models (pkg_resources workaround)
+cd ~
+git clone https://github.com/ageitgey/face_recognition_models
+cd face_recognition_models
+pip install .
+cd ~/smart-tello-follower
+
+# Patch the broken __init__.py
+cat > venv/lib/python3.11/site-packages/face_recognition_models/__init__.py << 'EOF'
+from pathlib import Path
+_models_dir = Path(__file__).parent / "models"
+def pose_predictor_model_location():
+    return str(_models_dir / "shape_predictor_68_face_landmarks.dat")
+def pose_predictor_five_point_model_location():
+    return str(_models_dir / "shape_predictor_5_face_landmarks.dat")
+def face_recognition_model_location():
+    return str(_models_dir / "dlib_face_recognition_resnet_model_v1.dat")
+def cnn_face_detector_model_location():
+    return str(_models_dir / "mmod_human_face_detector.dat")
+EOF
+```
+
+**5. Verify the install**
 
 ```bash
 python -c "import dlib, face_recognition, cv2, djitellopy, mediapipe; print('All imports OK')"
