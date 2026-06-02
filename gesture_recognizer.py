@@ -2,13 +2,19 @@ import cv2
 import mediapipe as mp
 from collections import deque
 
-from config import WIDTH, HEIGHT
 
 class GestureRecognizer:
+    """
+    class for handling hand gesture recognition using MediaPipe
+    with confirmation system to reduce false positives
+    """
+
     def __init__(self):
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(max_num_hands=2, min_detection_confidence=0.4, min_tracking_confidence=0.3)
         self.mp_draw = mp.solutions.drawing_utils
+
+        # gesture confirmation settings
         self.GESTURE_CONFIRMATION_FRAMES = 20
         self.GESTURE_HISTORY = deque(maxlen=self.GESTURE_CONFIRMATION_FRAMES)
         self.GESTURE_COOLDOWN = 30
@@ -16,33 +22,26 @@ class GestureRecognizer:
         
 
     def process_hands(self, img):
+        """process hands, draw landmarks, and return confirmed gesture if detected"""
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         hand_results = self.hands.process(img_rgb)
         confirmed_gesture = None
 
         if hand_results.multi_hand_landmarks:
             for i, hand_landmarks in enumerate(hand_results.multi_hand_landmarks):
+                # draw hand landmarks
                 self.mp_draw.draw_landmarks(img, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
 
                 handedness = hand_results.multi_handedness[i].classification[0].label
                 finger_count = self.get_finger_count(hand_landmarks, handedness)
                 gesture = self.get_gesture(finger_count, hand_landmarks)
+
                 self.GESTURE_HISTORY.append(gesture)
                 confirmed_gesture = self.get_confirmed_gesture()
 
+                # display gesture feedback on stream
                 if gesture:
-                    wrist = hand_landmarks.landmark[0]
-                    label_x = int(wrist.x*img.shape[1])
-                    label_y = int(wrist.y*img.shape[0])+20
-
-                    if confirmed_gesture and self.cooldown_counter == 0:
-                        print(f"Confirmed Gesture: {confirmed_gesture}")
-                        self.cooldown_counter = self.GESTURE_COOLDOWN
-                        cv2.putText(img, f"confirmed: {confirmed_gesture}", (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 3)
-                    elif confirmed_gesture and self.cooldown_counter > 0:
-                        cv2.putText(img, f"confirmed: {confirmed_gesture}", (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 3)
-                    elif gesture and self.cooldown_counter == 0:
-                        cv2.putText(img, f"gesture: {gesture}", (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 1)
+                    self._draw_gesture_label(img, hand_landmarks, gesture, confirmed_gesture)
 
         else:
             self.GESTURE_HISTORY.clear()
@@ -51,12 +50,29 @@ class GestureRecognizer:
             self.cooldown_counter -= 1
 
         return img, confirmed_gesture
+    
+
+    def _draw_gesture_label(self, img, hand_landmarks, gesture, confirmed_gesture):
+        """draw gesture text on stream"""
+        wrist = hand_landmarks.landmark[0]
+        label_x = int(wrist.x*img.shape[1])
+        label_y = int(wrist.y*img.shape[0])+20
+
+        if confirmed_gesture and self.cooldown_counter == 0:
+            self.cooldown_counter = self.GESTURE_COOLDOWN
+            cv2.putText(img, f"Confirmed: {confirmed_gesture}", (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 3)
+        elif confirmed_gesture and self.cooldown_counter > 0:
+            cv2.putText(img, f"Confirmed: {confirmed_gesture}", (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 3)
+        elif gesture and self.cooldown_counter == 0:
+            cv2.putText(img, f"Unconfirmed Gesture: {gesture}", (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 1)
 
     
     def get_finger_count(self, hand_landmarks, handedness):
+        """count extended fingers"""
         landmarks = hand_landmarks.landmark
         extended_fingers = 0
 
+        # thumb
         if handedness == "Left":
             if landmarks[4].x > landmarks[3].x:
                  extended_fingers += 1
@@ -73,6 +89,7 @@ class GestureRecognizer:
         
 
     def is_ok_sign(self, landmarks):
+        """detect OK sign"""
         thumb_tip = landmarks[4]
         index_tip = landmarks[8]
 
@@ -85,6 +102,7 @@ class GestureRecognizer:
 
 
     def get_confirmed_gesture(self):
+        """confirm gesture has enough consistent frames"""
         if len(self.GESTURE_HISTORY) < self.GESTURE_CONFIRMATION_FRAMES:
             return None
         
@@ -95,6 +113,7 @@ class GestureRecognizer:
 
 
     def get_gesture(self, finger_count, hand_landmarks):
+        """map finger count and other characteristics to specific gestures"""
         if self.is_ok_sign(hand_landmarks.landmark):
             return "OK"
         elif finger_count == 0:
